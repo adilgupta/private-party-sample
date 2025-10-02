@@ -169,9 +169,12 @@ async function checkToken() {
     // Split CSV into rows
     const rows = data.split("\n").map(r => r.split(","));
 
-    // Assuming: Column A=Name, Column B=Email, Column C=Token
+    // Assuming: B=Name (index 1), C=Email (index 2), H=Token (index 7)
     for (let i = 1; i < rows.length; i++) { // skip header row
-      const [name, email, sheetToken] = rows[i].map(x => x.trim());
+      const name = rows[i][1] ? rows[i][1].trim() : "";
+      const email = rows[i][2] ? rows[i][2].trim() : "";
+      const sheetToken = rows[i][7] ? rows[i][7].trim() : "";
+
       if (sheetToken === token) {
         messageEl.innerText = "Welcome " + name;
         return;
