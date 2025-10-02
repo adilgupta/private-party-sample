@@ -106,7 +106,7 @@
 
 <div class="container">
   <!-- Personalized Greeting -->
-  <h1 id="welcome-message">Welcome Guest</h1>
+  <h1 id="welcome-message">Checking invitation...</h1>
 
   <!-- Hero Image -->
   <div class="media">
@@ -146,12 +146,49 @@
 </footer>
 
 <script>
-  // Personalize greeting from ?id=Name
-  const params = new URLSearchParams(window.location.search);
-  const id = params.get("id");
-  if (id) {
-    document.getElementById("welcome-message").innerText = "Welcome " + id;
+// ===== CONFIGURATION =====
+// Replace this with your published Google Sheet link (File -> Share -> Publish to web -> CSV)
+const sheetUrl = "https://docs.google.com/spreadsheets/d/e/XXXX/pub?output=csv";
+
+// Get token from ?id= parameter
+const params = new URLSearchParams(window.location.search);
+const token = params.get("id");
+
+async function checkToken() {
+  const messageEl = document.getElementById("welcome-message");
+
+  if (!token) {
+    messageEl.innerText = "Invalid or missing link";
+    return;
   }
+
+  try {
+    const response = await fetch(sheetUrl);
+    const data = await response.text();
+
+    // Split CSV into rows
+    const rows = data.split("\n").map(r => r.split(","));
+
+    // Assuming: Column A=Name, Column B=Email, Column C=Token
+    for (let i = 1; i < rows.length; i++) { // skip header row
+      const [name, email, sheetToken] = rows[i].map(x => x.trim());
+      if (sheetToken === token) {
+        messageEl.innerText = "Welcome " + name;
+        return;
+      }
+    }
+
+    // If not found
+    messageEl.innerText = "Invalid or expired link";
+
+  } catch (err) {
+    messageEl.innerText = "Error loading invitation list";
+    console.error(err);
+  }
+}
+
+// Run on page load
+checkToken();
 </script>
 
 </body>
